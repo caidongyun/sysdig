@@ -409,9 +409,7 @@ scap_t* scap_open_live_int(char *error, int32_t *rc,
 	//
 	// Create the process list
 	//
-	error[0] = '\0';
-	snprintf(filename, sizeof(filename), "%s/proc", scap_get_host_root());
-	if((*rc = scap_proc_scan_proc_dir(handle, filename, -1, -1, NULL, error, true)) != SCAP_SUCCESS)
+	if((*rc = scap_create_process_list(handle, error)) != SCAP_SUCCESS)
 	{
 		scap_close(handle);
 		snprintf(error, SCAP_LASTERR_SIZE, "error creating the process list. Make sure you have root credentials.");
@@ -428,6 +426,17 @@ scap_t* scap_open_live_int(char *error, int32_t *rc,
 	}
 
 	return handle;
+}
+
+int32_t scap_create_process_list(scap_t* handle, char* error)
+{
+	char filename[SCAP_MAX_PATH_SIZE];
+	char er[SCAP_LASTERR_SIZE];
+	char *use_error = error ? error : er;
+	use_error[0] = '\0';
+
+	snprintf(filename, sizeof(filename), "%s/proc", scap_get_host_root());
+	return scap_proc_scan_proc_dir(handle, filename, -1, -1, NULL, use_error, true);
 }
 #endif // !defined(HAS_CAPTURE) || defined(CYGWING_AGENT)
 

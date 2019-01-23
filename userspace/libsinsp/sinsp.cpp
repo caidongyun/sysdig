@@ -19,6 +19,7 @@ limitations under the License.
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <chrono>
 #ifndef _WIN32
 #include <unistd.h>
 #include <sys/stat.h>
@@ -1536,6 +1537,12 @@ threadinfo_map_t::ptr_t sinsp::get_thread_ref(int64_t tid, bool query_os_if_not_
 	return sinsp_proc;
 }
 
+uint32_t sinsp::get_thread_count() const
+{
+	return m_thread_manager->get_thread_count();
+}
+
+
 sinsp_threadinfo* sinsp::get_thread(int64_t tid)
 {
 	return get_thread(tid, false, true);
@@ -2041,6 +2048,13 @@ double sinsp::get_read_progress()
 	}
 
 	return (double)fpos * 100 / m_filesize;
+}
+
+uint32_t sinsp::full_proc_scan()
+{
+	// do a second scan
+	g_logger.log("Performing a full /proc scan", sinsp_logger::SEV_DEBUG);
+	return scap_create_process_list(m_h, NULL);
 }
 
 bool sinsp::remove_inactive_threads()

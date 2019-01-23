@@ -518,7 +518,7 @@ public:
 
 	void dump_threads_to_file(scap_dumper_t* dumper);
 
-	uint32_t get_thread_count()
+	uint32_t get_thread_count() const
 	{
 		return (uint32_t)m_threadtable.size();
 	}

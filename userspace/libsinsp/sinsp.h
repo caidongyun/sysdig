@@ -304,6 +304,13 @@ public:
 	*/
 	uint64_t get_num_events();
 
+	/*
+	  \brief perform a full /proc process scan
+	  \return SCAP_SUCCES on success, SCAP_FAILURE otherwise
+	 */
+	uint32_t full_proc_scan();
+
+
 	/*!
 	  \brief Set the capture snaplen, i.e. the maximum size an event
 	  parameter can reach before the driver starts truncating it.
@@ -504,6 +511,12 @@ public:
 	*/
 	sinsp_threadinfo* get_thread(int64_t tid, bool query_os_if_not_found, bool lookup_only);
 	threadinfo_map_t::ptr_t get_thread_ref(int64_t tid, bool query_os_if_not_found, bool lookup_only);
+
+	/*!
+	  \brief Get the number of stored threads
+	  \return The number of threads
+	 */
+	uint32_t get_thread_count() const;
 
 	/*!
 	  \brief Return the table with all the machine users.
@@ -894,7 +907,6 @@ VISIBILITY_PRIVATE
 #ifdef _DOXYGEN
 private:
 #endif
-
 	void open_int();
 	void init();
 	void import_thread_table();

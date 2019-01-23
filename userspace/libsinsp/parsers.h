@@ -82,6 +82,8 @@ public:
 	static void init_scapevt(metaevents_state& evt_state, uint16_t evt_type, uint16_t buf_size);
 
 private:
+
+	static const int SECOND_SCAN_INTERVAL_IN_SEC = 10;
 	//
 	// Initializers
 	//
@@ -160,6 +162,11 @@ private:
 	uint8_t* reserve_event_buffer();
 	void free_event_buffer(uint8_t*);
 
+	// During startup, a thread creation event may be missed (if it happens in between /proc scan and scap_start_capture).
+	// In some cases, this can result in misbehaving. So, only during a short interval after startup,
+	// if we get an event from a non-scanned thread, we perform a second full scan
+	void full_proc_scan_if_needed(int64_t tid);
+
 	//
 	// Pointers to inspector context
 	//
@@ -177,6 +184,9 @@ private:
 
 	// FD listener callback
 	sinsp_fd_listener* m_fd_listener;
+
+	const uint32_t m_sinsp_start_ts;
+	bool m_second_scan_done_or_time_elapsed;
 
 	//
 	// The protocol decoders allocated by this parser

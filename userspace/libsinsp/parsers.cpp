@@ -32,6 +32,7 @@ limitations under the License.
 #include <stdlib.h>
 #include <fcntl.h>
 #include <limits>
+#include <chrono>
 
 #include "sinsp.h"
 #include "sinsp_int.h"
@@ -72,7 +73,9 @@ sinsp_parser::sinsp_parser(sinsp *inspector) :
 sinsp_parser::sinsp_parser(sinsp *inspector) :
 	m_inspector(inspector),
 	m_tmp_evt(m_inspector),
-	m_fd_listener(NULL)
+	m_fd_listener(NULL),
+	m_sinsp_start_ts(std::chrono::steady_clock::now().time_since_epoch().count()),
+	m_second_scan_done_or_time_elapsed(false)
 {
 	m_fake_userevt = (scap_evt*)m_fake_userevt_storage;
 
@@ -138,6 +141,8 @@ void sinsp_parser::process_event(sinsp_evt *evt)
 {
 	uint16_t etype = evt->m_pevt->type;
 	bool is_live = m_inspector->is_live();
+
+	full_proc_scan_if_needed(evt->m_pevt->tid);
 
 	//
 	// Cleanup the event-related state
@@ -531,6 +536,39 @@ void sinsp_parser::event_cleanup(sinsp_evt *evt)
 ///////////////////////////////////////////////////////////////////////////////
 // HELPERS
 ///////////////////////////////////////////////////////////////////////////////
+
+void sinsp_parser::full_proc_scan_if_needed(int64_t tid)
+{
+	if(!m_second_scan_done_or_time_elapsed)
+	{
+		auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+		m_second_scan_done_or_time_elapsed = ((now - m_sinsp_start_ts) > SECOND_SCAN_INTERVAL_IN_SEC);
+		if(!m_second_scan_done_or_time_elapsed)
+		{
+			// check if thread exist. if not, do a second scan
+			auto thr = m_inspector->find_thread(tid, true);
+			if(!thr)
+			{
+				// do a second scan
+				auto before = m_inspector->get_thread_count();
+				auto rc = m_inspector->full_proc_scan();
+				if(rc != SCAP_SUCCESS)
+				{
+					g_logger.log("Failed to perform a full /proc scan", sinsp_logger::SEV_ERROR);
+				}
+				else
+				{
+					m_second_scan_done_or_time_elapsed = true;
+					auto after = m_inspector->get_thread_count();
+					if(after != before)
+					{
+						g_logger.format(sinsp_logger::SEV_DEBUG, "After a full /proc scan, found %d new thread%s ", after - before, (after - before) > 1 ? "s" : "");
+					}
+				}
+			}
+		}
+	}
+}
 
 //
 // Called before starting the parsing.
