@@ -516,8 +516,6 @@ struct ppm_syscall_desc {
 */
 scap_t* scap_open_live(char *error, int32_t *rc);
 
-int32_t scap_create_process_list(scap_t* handle, char* error);
-
 /*!
   \brief Start an event capture from file.
 
