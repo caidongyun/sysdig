@@ -63,6 +63,7 @@ void on_new_entry_from_proc(void* context, scap_t* handle, int64_t tid, scap_thr
 // sinsp implementation
 ///////////////////////////////////////////////////////////////////////////////
 sinsp::sinsp() :
+	m_check_bump_max_n_proc_lookups(true),
 	m_evt(this),
 	m_container_manager(this)
 {
@@ -1021,6 +1022,29 @@ void sinsp::restart_capture_at_filepos(uint64_t filepos)
 	}
 }
 
+uint32_t sinsp::get_max_n_proc_loopkups()
+{
+	uint32_t ret = m_max_n_proc_lookups;
+
+	auto get_ts = []() -> uint32_t
+	{
+		return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+	};
+	static const uint32_t startup = get_ts();
+
+	if(m_check_bump_max_n_proc_lookups)
+	{
+		auto now = get_ts();
+		m_check_bump_max_n_proc_lookups = ((now - startup) < BUMP_MAX_N_PROC_LOOKUPS_DURATION_IN_SEC);
+		if(m_check_bump_max_n_proc_lookups)
+		{
+			g_logger.format(sinsp_logger::SEV_TRACE, "Bumping max_n_proc_lookups to %d", STARTUP_MAX_N_PROC_LOOKUPS);
+			ret = STARTUP_MAX_N_PROC_LOOKUPS;
+		}
+	}
+	return ret;
+}
+
 int32_t sinsp::next(OUT sinsp_evt **puevt)
 {
 	sinsp_evt* evt;
@@ -1459,14 +1483,14 @@ threadinfo_map_t::ptr_t sinsp::get_thread_ref(int64_t tid, bool query_os_if_not_
 
 		m_n_proc_lookups++;
 
-		if(m_n_proc_lookups == m_max_n_proc_lookups)
+		if(m_n_proc_lookups == get_max_n_proc_loopkups())
 		{
 			g_logger.format(sinsp_logger::SEV_INFO, "Reached max process lookup number, duration=%" PRIu64 "ms",
 				m_n_proc_lookups_duration_ns / 1000000);
 		}
 
-		if(m_max_n_proc_lookups < 0 ||
-		   m_n_proc_lookups <= m_max_n_proc_lookups)
+		if(get_max_n_proc_loopkups() < 0 ||
+		   m_n_proc_lookups <= get_max_n_proc_loopkups())
 		{
 #ifdef HAS_ANALYZER
 			tracer_emitter("sinsp_proc_lookup");
