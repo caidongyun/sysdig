@@ -185,7 +185,6 @@ private:
 	// FD listener callback
 	sinsp_fd_listener* m_fd_listener;
 
-	const uint32_t m_sinsp_start_ts;
 	bool m_second_scan_done_or_time_elapsed;
 
 	//

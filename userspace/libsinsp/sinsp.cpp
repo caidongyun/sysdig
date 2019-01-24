@@ -1026,15 +1026,11 @@ uint32_t sinsp::get_max_n_proc_loopkups()
 {
 	uint32_t ret = m_max_n_proc_lookups;
 
-	auto get_ts = []() -> uint32_t
-	{
-		return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
-	};
-	static const uint32_t startup = get_ts();
+	static const uint32_t startup = sinsp_utils::get_steady_clock_ts();
 
 	if(m_check_bump_max_n_proc_lookups)
 	{
-		auto now = get_ts();
+		auto now = sinsp_utils::get_steady_clock_ts();
 		m_check_bump_max_n_proc_lookups = ((now - startup) < BUMP_MAX_N_PROC_LOOKUPS_DURATION_IN_SEC);
 		if(m_check_bump_max_n_proc_lookups)
 		{

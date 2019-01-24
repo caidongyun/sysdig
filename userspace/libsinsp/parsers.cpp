@@ -43,6 +43,7 @@ limitations under the License.
 #include "filter.h"
 #include "filterchecks.h"
 #include "protodecoder.h"
+#include "utils.h"
 #ifdef HAS_ANALYZER
 #include "analyzer_int.h"
 #include "analyzer_thread.h"
@@ -74,7 +75,6 @@ sinsp_parser::sinsp_parser(sinsp *inspector) :
 	m_inspector(inspector),
 	m_tmp_evt(m_inspector),
 	m_fd_listener(NULL),
-	m_sinsp_start_ts(std::chrono::steady_clock::now().time_since_epoch().count()),
 	m_second_scan_done_or_time_elapsed(false)
 {
 	m_fake_userevt = (scap_evt*)m_fake_userevt_storage;
@@ -539,10 +539,12 @@ void sinsp_parser::event_cleanup(sinsp_evt *evt)
 
 void sinsp_parser::full_proc_scan_if_needed(int64_t tid)
 {
+	static const uint32_t sinsp_start_ts = sinsp_utils::get_steady_clock_ts();
+
 	if(!m_second_scan_done_or_time_elapsed)
 	{
-		auto now = std::chrono::steady_clock::now().time_since_epoch().count();
-		m_second_scan_done_or_time_elapsed = ((now - m_sinsp_start_ts) > SECOND_SCAN_INTERVAL_IN_SEC);
+		auto now = sinsp_utils::get_steady_clock_ts();
+		m_second_scan_done_or_time_elapsed = ((now - sinsp_start_ts) > SECOND_SCAN_INTERVAL_IN_SEC);
 		if(!m_second_scan_done_or_time_elapsed)
 		{
 			// check if thread exist. if not, do a second scan
