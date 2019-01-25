@@ -982,7 +982,7 @@ private:
 
 	uint32_t get_max_n_proc_loopkups();
 	static const int STARTUP_MAX_N_PROC_LOOKUPS = 100;
-	static const int BUMP_MAX_N_PROC_LOOKUPS_DURATION_IN_SEC = 20;
+	static const int BUMP_MAX_N_PROC_LOOKUPS_DURATION_IN_SEC = 60;
 	bool m_check_bump_max_n_proc_lookups;
 	scap_t* m_h;
 	uint32_t m_nevts;

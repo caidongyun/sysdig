@@ -1034,8 +1034,9 @@ uint32_t sinsp::get_max_n_proc_loopkups()
 		m_check_bump_max_n_proc_lookups = ((now - startup) < BUMP_MAX_N_PROC_LOOKUPS_DURATION_IN_SEC);
 		if(m_check_bump_max_n_proc_lookups)
 		{
-			g_logger.format(sinsp_logger::SEV_TRACE, "Bumping max_n_proc_lookups to %d", STARTUP_MAX_N_PROC_LOOKUPS);
-			ret = STARTUP_MAX_N_PROC_LOOKUPS;
+			ret = (STARTUP_MAX_N_PROC_LOOKUPS*(BUMP_MAX_N_PROC_LOOKUPS_DURATION_IN_SEC - (now - startup)) + m_max_n_proc_lookups)/BUMP_MAX_N_PROC_LOOKUPS_DURATION_IN_SEC;
+			g_logger.format(sinsp_logger::SEV_TRACE, "Bumping max_n_proc_lookups to %d", ret);
+
 		}
 	}
 	return ret;
