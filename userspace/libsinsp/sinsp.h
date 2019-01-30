@@ -980,7 +980,7 @@ private:
 
 	void add_suppressed_comms(scap_open_args &oargs);
 
-	uint32_t get_max_n_proc_loopkups();
+	int32_t get_max_n_proc_lookups();
 	static const int STARTUP_MAX_N_PROC_LOOKUPS = 100;
 	static const int BUMP_MAX_N_PROC_LOOKUPS_DURATION_IN_SEC = 60;
 	bool m_check_bump_max_n_proc_lookups;

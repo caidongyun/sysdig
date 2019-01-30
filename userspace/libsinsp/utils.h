@@ -136,7 +136,7 @@ public:
 	static bool parse_iso_8601_utc_string(const std::string& time_str, uint64_t &ns);
 
 	template<typename Duration = std::chrono::seconds>
-	static uint32_t get_steady_clock_ts()
+	static uint64_t get_steady_clock_ts()
 	{
 		return std::chrono::duration_cast<Duration>(std::chrono::steady_clock::now().time_since_epoch()).count();
 	}
